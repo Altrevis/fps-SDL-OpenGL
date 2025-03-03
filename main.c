@@ -9,6 +9,10 @@ float camSpeed = 0.1f;  // Vitesse de déplacement
 float jumpHeight = 0.3f; // Hauteur du saut
 int isJumping1 = 0, isJumping2 = 0;  // Flags pour savoir si chaque joueur saute
 
+// Variables pour les "pixels" tirés
+float pixelX1 = 0.0f, pixelY1 = 0.0f, pixelZ1 = -5.0f;  // Position du pixel pour le joueur 1
+float pixelX2 = 0.0f, pixelY2 = 0.0f, pixelZ2 = -5.0f;  // Position du pixel pour le joueur 2
+
 void movePlayer1(const Uint8 *keystate) {
     if (keystate[SDL_SCANCODE_W]) {
         camZ1 -= camSpeed;  // Avance (W)
@@ -62,6 +66,21 @@ void movePlayer2(const Uint8 *keystate) {
         }
     } else if (camY2 > 0.0f) {
         camY2 -= jumpHeight;  // Redescendre le joueur 2
+    }
+}
+
+// Fonction pour tirer un pixel pour chaque joueur
+void shootPixel1(const Uint8 *keystate) {
+    if (keystate[SDL_SCANCODE_R]) {  // Si la touche 'R' est pressée
+        // Lancer un pixel vers l'avant du joueur 1
+        pixelZ1 -= 0.1f;  // Déplacer le pixel vers l'avant
+    }
+}
+
+void shootPixel2(const Uint8 *keystate) {
+    if (keystate[SDL_SCANCODE_T]) {  // Si la touche 'T' est pressée
+        // Lancer un pixel vers l'avant du joueur 2
+        pixelZ2 -= 0.1f;  // Déplacer le pixel vers l'avant
     }
 }
 
@@ -123,6 +142,8 @@ int main(int argc, char *argv[]) {
         const Uint8 *keystate = SDL_GetKeyboardState(NULL);
         movePlayer1(keystate);
         movePlayer2(keystate);
+        shootPixel1(keystate);  // Vérifier si le joueur 1 appuie sur 'R'
+        shootPixel2(keystate);  // Vérifier si le joueur 2 appuie sur 'T'
 
         // Limiter les déplacements des joueurs
         if (camX1 > 2.0f) camX1 = 2.0f;
@@ -156,6 +177,16 @@ int main(int argc, char *argv[]) {
         glVertex3f(-1.0f,  1.0f,  1.0f);
         glEnd();
 
+        // Tirer un pixel pour le joueur 1
+        glPushMatrix();
+        glTranslatef(pixelX1, pixelY1, pixelZ1);
+        glPointSize(5.0f);  // Définir la taille du point à 5 pixels
+        glBegin(GL_POINTS);
+        glColor3f(0.0f, 1.0f, 0.0f);  // Vert
+        glVertex3f(0.0f, 0.0f, 0.0f);
+        glEnd();
+        glPopMatrix();
+
         // Vue pour le joueur 2
         glViewport(400, 0, 400, 600);  // Diviser l'écran (droite)
         glLoadIdentity();
@@ -170,13 +201,24 @@ int main(int argc, char *argv[]) {
         glVertex3f(-1.0f,  1.0f,  1.0f);
         glEnd();
 
-        // Échanger les buffers pour afficher
+        // Tirer un pixel pour le joueur 2
+        glPushMatrix();
+        glTranslatef(pixelX2, pixelY2, pixelZ2);
+        glPointSize(5.0f);  // Définir la taille du point à 5 pixels
+        glBegin(GL_POINTS);
+        glColor3f(0.0f, 1.0f, 0.0f);  // Vert
+        glVertex3f(0.0f, 0.0f, 0.0f);
+        glEnd();
+        glPopMatrix();
+
+        // Mettre à jour l'écran
         SDL_GL_SwapWindow(window);
     }
 
-    // Libérer les ressources et quitter
+    // Quitter
     SDL_GL_DeleteContext(context);
     SDL_DestroyWindow(window);
     SDL_Quit();
+
     return 0;
 }
