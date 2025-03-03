@@ -3,12 +3,67 @@
 #include <GL/glu.h>
 #include <stdio.h>
 
-float camX = 0.0f;  // Position de la caméra (déplacement sur l'axe X)
-float camY = 0.0f;  // Position de la caméra (déplacement sur l'axe Y)
-float camZ = -5.0f;  // Position de la caméra sur l'axe Z (en avant)
+float camX1 = 0.0f, camY1 = 0.0f, camZ1 = -5.0f;  // Position de la caméra du joueur 1
+float camX2 = 0.0f, camY2 = 0.0f, camZ2 = -5.0f;  // Position de la caméra du joueur 2
 float camSpeed = 0.1f;  // Vitesse de déplacement
 float jumpHeight = 0.3f; // Hauteur du saut
-int isJumping = 0;  // Flag pour vérifier si la caméra saute
+int isJumping1 = 0, isJumping2 = 0;  // Flags pour savoir si chaque joueur saute
+
+void movePlayer1(const Uint8 *keystate) {
+    if (keystate[SDL_SCANCODE_W]) {
+        camZ1 -= camSpeed;  // Avance (W)
+    }
+    if (keystate[SDL_SCANCODE_S]) {
+        camZ1 += camSpeed;  // Recule (S)
+    }
+    if (keystate[SDL_SCANCODE_A]) {
+        camX1 -= camSpeed;  // Aller à gauche (A)
+    }
+    if (keystate[SDL_SCANCODE_D]) {
+        camX1 += camSpeed;  // Aller à droite (D)
+    }
+    if (keystate[SDL_SCANCODE_SPACE] && !isJumping1) {
+        isJumping1 = 1;  // Activer le saut pour joueur 1
+    }
+
+    // Saut pour le joueur 1
+    if (isJumping1) {
+        camY1 += jumpHeight;
+        if (camY1 >= 1.0f) {
+            isJumping1 = 0;  // Fin du saut
+        }
+    } else if (camY1 > 0.0f) {
+        camY1 -= jumpHeight;  // Redescendre le joueur 1
+    }
+}
+
+void movePlayer2(const Uint8 *keystate) {
+    if (keystate[SDL_SCANCODE_UP]) {
+        camZ2 -= camSpeed;  // Avance (flèche haut)
+    }
+    if (keystate[SDL_SCANCODE_DOWN]) {
+        camZ2 += camSpeed;  // Recule (flèche bas)
+    }
+    if (keystate[SDL_SCANCODE_LEFT]) {
+        camX2 -= camSpeed;  // Aller à gauche (flèche gauche)
+    }
+    if (keystate[SDL_SCANCODE_RIGHT]) {
+        camX2 += camSpeed;  // Aller à droite (flèche droite)
+    }
+    if (keystate[SDL_SCANCODE_RCTRL] && !isJumping2) {
+        isJumping2 = 1;  // Activer le saut pour joueur 2
+    }
+
+    // Saut pour le joueur 2
+    if (isJumping2) {
+        camY2 += jumpHeight;
+        if (camY2 >= 1.0f) {
+            isJumping2 = 0;  // Fin du saut
+        }
+    } else if (camY2 > 0.0f) {
+        camY2 -= jumpHeight;  // Redescendre le joueur 2
+    }
+}
 
 int main(int argc, char *argv[]) {
     // Initialisation de SDL
@@ -64,73 +119,56 @@ int main(int argc, char *argv[]) {
             }
         }
 
-        // Gestion des touches ZQSD et Espace
+        // Gestion des touches pour chaque joueur
         const Uint8 *keystate = SDL_GetKeyboardState(NULL);
-        if (keystate[SDL_SCANCODE_S]) {
-            camZ += camSpeed;  // Recule (S)
-        }
-        if (keystate[SDL_SCANCODE_Z]) {
-            camZ -= camSpeed;  // Avance (Z)
-        }
-        if (keystate[SDL_SCANCODE_Q]) {
-            camX -= camSpeed;  // Aller à gauche (Q)
-        }
-        if (keystate[SDL_SCANCODE_D]) {
-            camX += camSpeed;  // Aller à droite (D)
-        }
-        if (keystate[SDL_SCANCODE_SPACE] && !isJumping) {
-            isJumping = 1;  // Activer le saut
-        }
+        movePlayer1(keystate);
+        movePlayer2(keystate);
 
-        // Saut : déplace la caméra sur l'axe Y pour simuler un saut
-        if (isJumping) {
-            camY += jumpHeight;  // Simuler le saut
-            if (camY >= 1.0f) {  // Atteindre une hauteur maximale
-                isJumping = 0;  // Fin du saut
-            }
-        } else if (camY > 0.0f) {
-            camY -= jumpHeight;  // Redescend progressivement à la position initiale
-        }
+        // Limiter les déplacements des joueurs
+        if (camX1 > 2.0f) camX1 = 2.0f;
+        if (camX1 < -2.0f) camX1 = -2.0f;
+        if (camY1 > 2.0f) camY1 = 2.0f;
+        if (camY1 < -2.0f) camY1 = -2.0f;
+        if (camZ1 > -3.0f) camZ1 = -3.0f;
+        if (camZ1 < -10.0f) camZ1 = -10.0f;
 
-        // Limiter les déplacements de la caméra
-        if (camX > 2.0f) {
-            camX = 2.0f;  // Limite maximale pour X
-        } else if (camX < -2.0f) {
-            camX = -2.0f;  // Limite minimale pour X
-        }
-
-        if (camY > 2.0f) {
-            camY = 2.0f;  // Limite maximale pour Y
-        } else if (camY < -2.0f) {
-            camY = -2.0f;  // Limite minimale pour Y
-        }
-
-        if (camZ > -3.0f) {
-            camZ = -3.0f;  // Limite maximale pour Z (ne pas trop rapprocher de la scène)
-        } else if (camZ < -10.0f) {
-            camZ = -10.0f;  // Limite minimale pour Z
-        }
+        if (camX2 > 2.0f) camX2 = 2.0f;
+        if (camX2 < -2.0f) camX2 = -2.0f;
+        if (camY2 > 2.0f) camY2 = 2.0f;
+        if (camY2 < -2.0f) camY2 = -2.0f;
+        if (camZ2 > -3.0f) camZ2 = -3.0f;
+        if (camZ2 < -10.0f) camZ2 = -10.0f;
 
         // Effacer l'écran et le tampon de profondeur
         glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
-        // Appliquer une transformation pour déplacer la caméra
-        glLoadIdentity();  // Réinitialiser la matrice de transformation
-        glTranslatef(camX, camY, camZ);  // Déplacer la caméra selon camX, camY et camZ
+        // Vue pour le joueur 1
+        glViewport(0, 0, 400, 600);  // Diviser l'écran (gauche)
+        glLoadIdentity();
+        gluLookAt(camX1, camY1, camZ1, 0.0f, 0.0f, 0.0f, 0.0f, 1.0f, 0.0f);
 
-        // Dessiner un cube
-        glBegin(GL_QUADS);  // Commencer à dessiner des quads (faces du cube)
-
-        // Face avant
+        // Dessiner le cube pour le joueur 1
+        glBegin(GL_QUADS);
         glColor3f(1.0f, 0.0f, 0.0f);  // Rouge
         glVertex3f(-1.0f, -1.0f,  1.0f);
         glVertex3f( 1.0f, -1.0f,  1.0f);
         glVertex3f( 1.0f,  1.0f,  1.0f);
         glVertex3f(-1.0f,  1.0f,  1.0f);
+        glEnd();
 
-        // Ajouter d'autres faces ici...
+        // Vue pour le joueur 2
+        glViewport(400, 0, 400, 600);  // Diviser l'écran (droite)
+        glLoadIdentity();
+        gluLookAt(camX2, camY2, camZ2, 0.0f, 0.0f, 0.0f, 0.0f, 1.0f, 0.0f);
 
-        glEnd();  // Fin du dessin
+        // Dessiner le cube pour le joueur 2
+        glBegin(GL_QUADS);
+        glColor3f(0.0f, 0.0f, 1.0f);  // Bleu
+        glVertex3f(-1.0f, -1.0f,  1.0f);
+        glVertex3f( 1.0f, -1.0f,  1.0f);
+        glVertex3f( 1.0f,  1.0f,  1.0f);
+        glVertex3f(-1.0f,  1.0f,  1.0f);
+        glEnd();
 
         // Échanger les buffers pour afficher
         SDL_GL_SwapWindow(window);
