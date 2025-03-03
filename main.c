@@ -7,6 +7,8 @@ float camX = 0.0f;  // Position de la caméra (déplacement sur l'axe X)
 float camY = 0.0f;  // Position de la caméra (déplacement sur l'axe Y)
 float camZ = -5.0f;  // Position de la caméra sur l'axe Z (en avant)
 float camSpeed = 0.1f;  // Vitesse de déplacement
+float jumpHeight = 0.3f; // Hauteur du saut
+int isJumping = 0;  // Flag pour vérifier si la caméra saute
 
 int main(int argc, char *argv[]) {
     // Initialisation de SDL
@@ -65,22 +67,29 @@ int main(int argc, char *argv[]) {
         // Gestion des touches ZQSD et Espace
         const Uint8 *keystate = SDL_GetKeyboardState(NULL);
         if (keystate[SDL_SCANCODE_S]) {
-            camY += camSpeed;  // Déplacer la caméra vers le bas (S)
+            camZ += camSpeed;  // Recule (S)
         }
-        if (keystate[SDL_SCANCODE_W]) {
-            camY -= camSpeed;  // Déplacer la caméra vers le haut (W)
+        if (keystate[SDL_SCANCODE_Z]) {
+            camZ -= camSpeed;  // Avance (Z)
+        }
+        if (keystate[SDL_SCANCODE_Q]) {
+            camX -= camSpeed;  // Aller à gauche (Q)
         }
         if (keystate[SDL_SCANCODE_D]) {
-            camX -= camSpeed;  // Déplacer la caméra vers la droite (D)
+            camX += camSpeed;  // Aller à droite (D)
         }
-        if (keystate[SDL_SCANCODE_A]) {
-            camX += camSpeed;  // Déplacer la caméra vers la gauche (A)
+        if (keystate[SDL_SCANCODE_SPACE] && !isJumping) {
+            isJumping = 1;  // Activer le saut
         }
-        if (keystate[SDL_SCANCODE_SPACE]) {
-            camZ += camSpeed;  // Déplacer la caméra vers l'avant (espace)
-        }
-        if (keystate[SDL_SCANCODE_LSHIFT]) {
-            camZ -= camSpeed;  // Déplacer la caméra vers l'arrière (shift)
+
+        // Saut : déplace la caméra sur l'axe Y pour simuler un saut
+        if (isJumping) {
+            camY += jumpHeight;  // Simuler le saut
+            if (camY >= 1.0f) {  // Atteindre une hauteur maximale
+                isJumping = 0;  // Fin du saut
+            }
+        } else if (camY > 0.0f) {
+            camY -= jumpHeight;  // Redescend progressivement à la position initiale
         }
 
         // Limiter les déplacements de la caméra
